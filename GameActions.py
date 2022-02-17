@@ -1,4 +1,8 @@
+import os
+import random
 import time
+from datetime import datetime
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -12,8 +16,8 @@ class GameActions:
 
     def initialLogin(self):
         # login
-        username = '' # 'ur username'
-        password = '' # 'ur password'
+        username = ''  # 'ur username'
+        password = ''  # 'ur password'
         self.driver.find_element_by_name('username').send_keys(username)
         self.driver.find_element_by_id('password').send_keys(password)
 
@@ -29,7 +33,7 @@ class GameActions:
             EC.presence_of_element_located((By.XPATH, '//*[@id="btn-login"]'))
         )
         element.click()
-        time.sleep(8)
+        time.sleep(random.uniform(7, 9))
 
         # closing popups
         element = WebDriverWait(self.driver, 20).until(
@@ -51,35 +55,110 @@ class GameActions:
         )
         element.click()
 
-    def goToFleetPage(self):
-        element = WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="globalMenu"]/ul/li[2]'))
+    def autoRefresh(self):
+        while True:
+            try:
+                element = WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="newAttackMsg"]'))
+                )
+                print("attack incoming...")
+                for i in range(0,40):
+                    duration = 0.5  # seconds
+                    freq = 350  # Hz
+                    os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
+                    time.sleep(5)
+            except:
+                print('no attack coming')
+                pass
+            xpath = '//*[@id="globalMenu"]/ul/li[{}]'.format(random.randint(1, 6))
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            element.click()
+            print('long sleep ...')
+            time.sleep(random.uniform(300, 400))
+
+
+    def getInactiveCoordinates(self):
+        element = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="globalMenu"]/ul/li[3]'))
         )
         element.click()
-        time.sleep(1)
-        # changing planet
+        time.sleep(random.uniform(1, 2))
+
+        # click advanced search
+        element = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="galaxyAdditional"]/li[4]/a'))
+        )
+        element.click()
+        element = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="buildingInfo"]/div[2]/ul/li[2]'))
+        )
+        element.click()
+        time.sleep(random.uniform(1, 2))
+
+        self.driver.find_element_by_xpath('//*[@id="txt_c1_down"]').clear()
+        self.driver.find_element_by_xpath('//*[@id="txt_c1_down"]').send_keys(1)
+        self.driver.find_element_by_xpath('//*[@id="txt_c2_down"]').clear()
+        self.driver.find_element_by_xpath('//*[@id="txt_c2_down"]').send_keys(1)
+        self.driver.find_element_by_xpath('//*[@id="txt_c1_up"]').clear()
+        self.driver.find_element_by_xpath('//*[@id="txt_c1_up"]').send_keys(2)
+        self.driver.find_element_by_xpath('//*[@id="txt_c2_up"]').clear()
+        self.driver.find_element_by_xpath('//*[@id="txt_c2_up"]').send_keys(40)
+        time.sleep(random.uniform(1, 2))
+        element = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="pointsSearchForm"]/div[8]/input'))
+        )
+        element.click()
+        time.sleep(random.uniform(1, 2))
+        element = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="pointsResults"]/table'))
+        )
+        rows = element.find_elements(By.TAG_NAME, 'tr')
+        for row in rows:
+            columns = row.find_elements(By.TAG_NAME, "td")
+            for item in columns:
+                pass
+
+    def goToFleetPage(self):
         element = WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="planetSwitch"]/div[2]'))
         )
         element.click()
-        time.sleep(1)
+        time.sleep(random.uniform(1,2))
         element = WebDriverWait(self.driver, 25).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="planetsListHolder"]/li[4]/a'))
         )
         element.click()
 
-    def infinitePirateflight(self, coordinate, shipsNumber, attackTimes, activeFlightsNumber):
+    def infinitePirateFlight(self, coordinate, shipsNumber, attackTimes, activeFlightsNumber):
         i = 0
-        element = WebDriverWait(self.driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="FleetsCount"]'))
-        )
         while True:
-            time.sleep(5)
-            print(element.text)
-            if element.text == str(activeFlightsNumber):
-                while i < attackTimes:
-                    self.sendPirateAttacks(coordinate, shipsNumber)
-                    i += 1
+            time.sleep(random.uniform(3,6))
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="globalMenu"]/ul/li[2]'))
+            )
+            element.click()
+            time.sleep(random.uniform(7, 15))
+            element = WebDriverWait(self.driver, 25).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="FleetsCount"]'))
+            )
+            print(datetime.now(), ": ", element.text)
+            if element.text != str(15):
+                if element.text == str(activeFlightsNumber) or element.text == "" or int(element.text) <= 14:
+                    while i < attackTimes:
+                        self.sendPirateAttacks(coordinate, shipsNumber)
+                        i += 1
+                    i = 0
+                    print("long sleep ...")
+                    time.sleep(random.uniform(120, 180))
+
+            xpath = '//*[@id="globalMenu"]/ul/li[{}]'.format(random.randint(1, 6))
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            element.click()
+            time.sleep(random.uniform(15, 25))
 
     def sendPirateAttacks(self, coordinate, numOfShips):
         self.driver.find_element_by_xpath('//*[@id="ship_2_3"]').send_keys(numOfShips)
@@ -93,7 +172,7 @@ class GameActions:
         )
         element.click()
 
-        time.sleep(6)
+        time.sleep(random.uniform(6,8))
         element = WebDriverWait(self.driver, 25).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="target_c1"]'))
         )
@@ -112,14 +191,8 @@ class GameActions:
         element.clear()
         element.send_keys(coordinate[2])
 
-        # self.driver.find_element_by_xpath('//*[@id="target_c1"]').clear()
-        # self.driver.find_element_by_xpath('//*[@id="target_c1"]').send_keys(coordinate[0])
-        # self.driver.find_element_by_xpath('//*[@id="target_c2"]').clear()
-        # self.driver.find_element_by_xpath('//*[@id="target_c2"]').send_keys(coordinate[1])
-        # self.driver.find_element_by_xpath('//*[@id="target_c3"]').clear()
-        # self.driver.find_element_by_xpath('//*[@id="target_c3"]').send_keys(coordinate[2])
         element = WebDriverWait(self.driver, 25).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="SendFleetButton"]'))
         )
         element.click()
-        time.sleep(4)
+        time.sleep(random.uniform(5, 6))
