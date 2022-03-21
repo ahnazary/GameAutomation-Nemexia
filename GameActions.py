@@ -1,5 +1,7 @@
 import os
 import random
+import select
+import sys
 import time
 from datetime import datetime
 
@@ -8,14 +10,17 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from GeneralActions import GeneralActions
 
 
-class GameActions:
+class GameActions(GeneralActions):
     def __init__(self, driver):
+        super().__init__(driver)
         self.driver = driver
 
     def initialLogin(self):
         # login
+        self.driver.maximize_window()
         username = ''  # 'ur username'
         password = ''  # 'ur password'
         self.driver.find_element_by_name('username').send_keys(username)
@@ -25,25 +30,20 @@ class GameActions:
             EC.presence_of_element_located((By.XPATH, '//*[@id="login"]/div/div[1]/div/div/button'))
         )
         element.click()
+
+        # server selction
         element = WebDriverWait(self.driver, 3).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="login"]/div/div[1]/div/div/div/ul/li[1]/a'))
+            EC.presence_of_element_located((By.XPATH, '//*[@id="login"]/div/div[1]/div/div/div/ul/li[3]/a/span[1]'))
         )
         element.click()
         element = WebDriverWait(self.driver, 3).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="btn-login"]'))
         )
         element.click()
-        time.sleep(random.uniform(7, 9))
+
+        # waiting for human to select pictures
 
         # closing popups
-        element = WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="dialogBox"]/div/div[3]/input'))
-        )
-        element.click()
-        element = WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="treasureHuntingPopup_closeButton"]'))
-        )
-        element.click()
         element = WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="dialogBox"]/a'))
         )
@@ -56,28 +56,38 @@ class GameActions:
         element.click()
 
     def autoRefresh(self):
+        numberOfRefreshes = 0
         while True:
             try:
-                element = WebDriverWait(self.driver, 3).until(
+                element = WebDriverWait(self.driver, 5).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="newAttackMsg"]'))
                 )
                 print("attack incoming...")
-                for i in range(0,40):
+                for i in range(0, 50):
                     duration = 0.5  # seconds
                     freq = 350  # Hz
                     os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
-                    time.sleep(5)
+                    time.sleep(2)
+                    i, o, e = select.select([sys.stdin], [], [], 3)
+
+                    if i:
+                        print("alert stopped.")
+                        break
+                    else:
+                        print("You said nothing! alert continues ...")
             except:
                 print('no attack coming')
                 pass
+
             xpath = '//*[@id="globalMenu"]/ul/li[{}]'.format(random.randint(1, 6))
             element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
             element.click()
-            print('long sleep ...')
-            time.sleep(random.uniform(300, 400))
-
+            randSleepTime = random.uniform(250, 350)
+            print(datetime.now(), ': long sleep for {} seconds'.format(randSleepTime))
+            time.sleep(randSleepTime)
+            self.resetActivityProtection()
 
     def getInactiveCoordinates(self):
         element = WebDriverWait(self.driver, 3).until(
@@ -125,7 +135,7 @@ class GameActions:
             EC.presence_of_element_located((By.XPATH, '//*[@id="planetSwitch"]/div[2]'))
         )
         element.click()
-        time.sleep(random.uniform(1,2))
+        time.sleep(random.uniform(1, 2))
         element = WebDriverWait(self.driver, 25).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="planetsListHolder"]/li[4]/a'))
         )
@@ -134,7 +144,7 @@ class GameActions:
     def infinitePirateFlight(self, coordinate, shipsNumber, attackTimes, activeFlightsNumber):
         i = 0
         while True:
-            time.sleep(random.uniform(3,6))
+            time.sleep(random.uniform(3, 6))
             element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="globalMenu"]/ul/li[2]'))
             )
@@ -172,7 +182,7 @@ class GameActions:
         )
         element.click()
 
-        time.sleep(random.uniform(6,8))
+        time.sleep(random.uniform(6, 8))
         element = WebDriverWait(self.driver, 25).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="target_c1"]'))
         )
